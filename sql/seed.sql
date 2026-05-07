@@ -21,3 +21,9 @@ INSERT INTO administrative_requests (student_id, type, description, status, subm
     (1, 'TRANSCRIPT',           'Need transcript for university application.', 'PENDING',  CURDATE(), NULL),
     (1, 'SCHOOL_CERTIFICATE',   'Required for visa application.',               'APPROVED', CURDATE(), NULL),
     (1, 'ATTENDANCE_CERTIFICATE','For internship application.',                 'REJECTED', CURDATE(), 'Missing supporting documents.');
+INSERT INTO rooms (name, capacity, available) VALUES
+    ('Room A101',  30, TRUE),
+    ('Room B204',  20, TRUE),
+    ('Lab C301',   15, TRUE),
+    ('Conference', 50, FALSE),
+    ('Study Hall', 10, TRUE);
