@@ -1,0 +1,1133 @@
+# Plan detaille de construction du frontend - Smart Campus CampusServices
+
+## 1. Analyse de depart
+
+Le dossier `frontend/` existe deja avec une structure de base React preparee.
+
+Structure actuelle detectee :
+
+- `frontend/src/components/`
+- `frontend/src/pages/`
+- `frontend/src/services/`
+- `frontend/src/routes/`
+- `frontend/src/context/`
+- `frontend/src/hooks/`
+- `frontend/src/styles/`
+- `frontend/src/utils/`
+- `frontend/src/assets/logo.png`
+
+Le logo de l'application est deja place ici :
+
+```txt
+frontend/src/assets/logo.png
+```
+
+Les couleurs principales a utiliser pour l'identite visuelle sont :
+
+```txt
+#6FFBBE
+#4EDEA3
+#26C289
+#00A572
+```
+
+Le backend reel est un backend Java simple avec `HttpServer`, JDBC, MySQL et JWT.
+
+Le contrat principal a suivre est :
+
+```txt
+frontend_backend_contract_smart_campus_java_jwt.md
+```
+
+L'ancien contrat :
+
+```txt
+smart_campus_frontend_backend_contract.md
+```
+
+ne doit pas etre utilise comme source principale, car il decrit une version sans JWT ou le frontend envoie `userId`. Le backend actuel fonctionne plutot avec JWT et extrait l'utilisateur depuis le token.
+
+## 2. Objectif frontend
+
+Construire une application web moderne, claire et responsive pour le module CampusServices.
+
+L'application doit permettre :
+
+- a l'etudiant de gerer ses livres, reservations et demandes administratives ;
+- a l'administrateur de gerer les demandes administratives et les salles ;
+- au bibliothecaire de gerer le catalogue et les emprunts ;
+- a chaque role d'avoir son propre dashboard et sa propre navigation ;
+- au frontend de communiquer avec le backend via JWT ;
+- au frontend d'afficher clairement les succes, erreurs, chargements et restrictions d'acces.
+
+## 3. Stack frontend recommandee
+
+Utiliser une stack simple et adaptee au projet :
+
+```txt
+React
+Vite
+React Router
+CSS classique avec variables CSS
+Fetch API native
+```
+
+Dependances minimales a prevoir plus tard :
+
+```txt
+vite
+react
+react-dom
+react-router-dom
+```
+
+Eviter d'ajouter trop de librairies au debut. Le projet est un MVP universitaire, donc il doit rester facile a comprendre, installer et presenter.
+
+## 4. Direction design
+
+Direction visuelle conseillee : dashboard universitaire moderne, propre, lumineux et institutionnel.
+
+L'interface doit donner une impression de plateforme academique serieuse mais accueillante.
+
+Palette proposee :
+
+```css
+:root {
+  --color-mint-100: #6FFBBE;
+  --color-mint-200: #4EDEA3;
+  --color-mint-300: #26C289;
+  --color-mint-400: #00A572;
+
+  --color-bg: #F6FBF8;
+  --color-surface: #FFFFFF;
+  --color-text: #10231B;
+  --color-muted: #6B7C73;
+  --color-border: #DDEBE4;
+  --color-danger: #DC2626;
+  --color-warning: #F59E0B;
+  --color-success: #16A34A;
+}
+```
+
+Style general :
+
+- fond clair legerement vert tres pale ;
+- cartes blanches avec bordures fines ;
+- boutons principaux en `#00A572` ;
+- accents et gradients avec `#6FFBBE`, `#4EDEA3`, `#26C289`, `#00A572` ;
+- logo affiche dans la sidebar et sur la page login ;
+- navigation lisible et stable ;
+- tableaux propres avec actions visibles ;
+- badges colores pour les statuts ;
+- design responsive desktop, tablette et mobile.
+
+## 5. Organisation cible du frontend
+
+Conserver la structure deja creee :
+
+```txt
+frontend/
+  public/
+  src/
+    assets/
+      logo.png
+    components/
+      Navbar.jsx
+      Sidebar.jsx
+      Card.jsx
+      Table.jsx
+      Modal.jsx
+      StatusBadge.jsx
+      Alert.jsx
+      Button.jsx
+      LoadingState.jsx
+    context/
+      AuthContext.jsx
+    hooks/
+      useAuth.js
+    pages/
+      Login.jsx
+      StudentDashboard.jsx
+      Library.jsx
+      MyLoans.jsx
+      RoomReservation.jsx
+      MyReservations.jsx
+      AdministrativeRequests.jsx
+      MyRequests.jsx
+      AdminDashboard.jsx
+      ManageRequests.jsx
+      ManageRooms.jsx
+      AdminReservations.jsx
+      LibrarianDashboard.jsx
+      ManageBooks.jsx
+      ManageLoans.jsx
+      Unauthorized.jsx
+      NotFound.jsx
+    routes/
+      AppRoutes.jsx
+      ProtectedRoute.jsx
+    services/
+      api.js
+      authService.js
+      bookService.js
+      roomService.js
+      requestService.js
+      loanService.js
+    styles/
+      global.css
+    utils/
+      constants.js
+      formatters.js
+      errorUtils.js
+    App.jsx
+    main.jsx
+```
+
+## 6. Regles API a respecter
+
+Base backend :
+
+```txt
+http://localhost:8080/api
+```
+
+Toutes les reponses backend suivent majoritairement ce format :
+
+```json
+{
+  "success": true,
+  "message": "Operation successful",
+  "data": {}
+}
+```
+
+Les erreurs suivent ce format :
+
+```json
+{
+  "success": false,
+  "message": "Error message"
+}
+```
+
+Le frontend doit toujours :
+
+- lire `success` ;
+- lire `message` ;
+- lire `data` ;
+- afficher `message` en cas d'erreur ;
+- envoyer le JWT dans l'en-tete `Authorization` ;
+- rediriger vers login si le token est absent ou invalide.
+
+Header attendu par le backend :
+
+```http
+Authorization: Bearer <accessToken>
+```
+
+## 7. Services API a construire
+
+### 7.1 `api.js`
+
+Objectif : centraliser les appels HTTP.
+
+Responsabilites :
+
+- definir `API_BASE_URL` ;
+- recuperer `accessToken` depuis `localStorage` ;
+- ajouter automatiquement le header `Authorization` ;
+- parser les reponses JSON ;
+- normaliser les erreurs ;
+- exposer des fonctions `get`, `post` ;
+- gerer les erreurs reseau ;
+- gerer le cas ou le backend renvoie `success: false`.
+
+Attention : le backend actuel ne configure pas CORS. Si le frontend tourne sur Vite (`localhost:5173`) et le backend sur `localhost:8080`, il faudra probablement ajouter CORS cote backend plus tard.
+
+### 7.2 `authService.js`
+
+Endpoints :
+
+```txt
+POST /auth/login
+GET /auth/me
+```
+
+Fonctions a prevoir :
+
+- `login(email, password)` ;
+- `getCurrentUser()` ;
+- `logout()` ;
+- `saveSession(accessToken, user)` ;
+- `getStoredToken()` ;
+- `getStoredUser()`.
+
+Apres login, stocker :
+
+```txt
+accessToken
+user
+```
+
+Le user contient selon le role :
+
+```txt
+userId
+studentId
+adminId
+librarianId
+fullName
+email
+role
+filiere
+valid
+```
+
+### 7.3 `bookService.js`
+
+Endpoints :
+
+```txt
+GET /books
+POST /books/borrow
+POST /books/return
+GET /books/my-borrowings
+POST /librarian/books
+POST /librarian/books/update
+POST /librarian/books/delete
+```
+
+Fonctions a prevoir :
+
+- `getBooks()` ;
+- `borrowBook(bookId)` ;
+- `returnBook(borrowingId)` ;
+- `getMyBorrowings()` ;
+- `addBook(payload)` ;
+- `updateBook(payload)` ;
+- `deleteBook(bookId)`.
+
+Important : le backend retourne les livres avec `bookId`, `title`, `author`, `status`, `returnDate`.
+
+### 7.4 `roomService.js`
+
+Endpoints :
+
+```txt
+GET /rooms
+POST /rooms/reserve
+POST /rooms/cancel-reservation
+GET /rooms/my-reservations
+POST /admin/rooms
+POST /admin/rooms/update-availability
+```
+
+Fonctions a prevoir :
+
+- `getRooms()` ;
+- `reserveRoom(payload)` ;
+- `cancelReservation(reservationId)` ;
+- `getMyReservations()` ;
+- `addRoom(payload)` ;
+- `updateRoomAvailability(roomId, available)`.
+
+Important : le backend actuel ne propose pas update complet de salle ni delete de salle. Dans l'interface, il faudra soit masquer ces actions, soit les afficher comme non disponibles si le backend n'est pas adapte plus tard.
+
+### 7.5 `requestService.js`
+
+Endpoints :
+
+```txt
+POST /requests
+GET /requests/my-requests
+GET /admin/requests
+POST /admin/requests/approve
+POST /admin/requests/reject
+```
+
+Fonctions a prevoir :
+
+- `submitRequest(payload)` ;
+- `getMyRequests()` ;
+- `getAllRequests()` ;
+- `approveRequest(requestId)` ;
+- `rejectRequest(requestId, refusalReason)`.
+
+Types de demandes selon le contrat JWT :
+
+```txt
+SCHOOL_CERTIFICATE
+ATTENDANCE_CERTIFICATE
+TRANSCRIPT
+OTHER
+```
+
+Statuts selon le contrat JWT :
+
+```txt
+PENDING
+APPROVED
+REJECTED
+```
+
+### 7.6 `loanService.js`
+
+Ce fichier peut servir de facade pour les emprunts si on veut separer la logique d'affichage des emprunts du `bookService`.
+
+Pour rester simple, il peut deleguer vers :
+
+```txt
+GET /books/my-borrowings
+POST /books/return
+```
+
+## 8. Authentification et autorisation
+
+### 8.1 `AuthContext.jsx`
+
+Responsabilites :
+
+- stocker `user`, `accessToken`, `isAuthenticated`, `loading` ;
+- charger la session depuis `localStorage` au demarrage ;
+- exposer `login`, `logout`, `refreshCurrentUser` ;
+- verifier le role de l'utilisateur ;
+- permettre aux pages de savoir si l'etudiant est valide.
+
+### 8.2 `ProtectedRoute.jsx`
+
+Responsabilites :
+
+- bloquer l'acces si non connecte ;
+- bloquer l'acces si role incorrect ;
+- rediriger vers `/login`, `/unauthorized` ou dashboard selon le cas ;
+- eviter que l'admin voie les pages etudiant ;
+- eviter que le bibliothecaire voie les pages admin ;
+- eviter que l'etudiant voie les pages admin ou bibliothecaire.
+
+### 8.3 Redirection apres login
+
+Selon `user.role` :
+
+```txt
+STUDENT -> /student/dashboard
+ADMIN -> /admin/dashboard
+LIBRARIAN -> /librarian/dashboard
+```
+
+### 8.4 Etudiant non valide
+
+Si `user.role === "STUDENT"` et `user.valid === false` :
+
+- afficher un bandeau d'alerte sur le dashboard ;
+- bloquer les actions d'emprunt, reservation et demande administrative ;
+- laisser l'utilisateur voir les pages en lecture si utile ;
+- afficher un message clair : `Votre compte etudiant n'est pas valide pour utiliser ce service.`
+
+## 9. Routing cible
+
+Routes publiques :
+
+```txt
+/login
+/unauthorized
+/*
+```
+
+Routes etudiant :
+
+```txt
+/student/dashboard
+/student/library
+/student/my-loans
+/student/rooms
+/student/my-reservations
+/student/requests/new
+/student/requests
+```
+
+Routes administrateur :
+
+```txt
+/admin/dashboard
+/admin/requests
+/admin/rooms
+/admin/reservations
+```
+
+Routes bibliothecaire :
+
+```txt
+/librarian/dashboard
+/librarian/books
+/librarian/loans
+```
+
+## 10. Layout global
+
+Construire une interface type dashboard.
+
+Composants principaux :
+
+- `Sidebar` pour la navigation par role ;
+- `Navbar` pour le titre de page, profil utilisateur et logout ;
+- `Card` pour statistiques et raccourcis ;
+- `Table` pour livres, salles, demandes et emprunts ;
+- `Modal` pour confirmations et formulaires secondaires ;
+- `StatusBadge` pour statuts ;
+- `Alert` pour erreurs et succes ;
+- `LoadingState` pour chargements.
+
+La sidebar doit afficher le logo :
+
+```txt
+src/assets/logo.png
+```
+
+Responsive :
+
+- desktop : sidebar fixe a gauche ;
+- tablette : sidebar reduite ou menu compact ;
+- mobile : menu hamburger ou navigation verticale masquee ;
+- tableaux : scroll horizontal ou cartes compactes sur mobile.
+
+## 11. Composants reutilisables a construire
+
+### 11.1 `Button.jsx`
+
+Variantes :
+
+```txt
+primary
+secondary
+danger
+ghost
+outline
+```
+
+Etats :
+
+```txt
+normal
+hover
+disabled
+loading
+```
+
+### 11.2 `StatusBadge.jsx`
+
+Mapper les statuts backend vers labels frontend.
+
+Bibliotheque :
+
+```txt
+AVAILABLE -> Disponible
+BORROWED -> Emprunte
+```
+
+Reservations :
+
+```txt
+CONFIRMED -> Confirmee
+CANCELLED -> Annulee
+```
+
+Demandes :
+
+```txt
+PENDING -> En attente
+APPROVED -> Validee
+REJECTED -> Refusee
+```
+
+Couleurs :
+
+```txt
+PENDING -> orange
+APPROVED -> vert
+REJECTED -> rouge
+AVAILABLE -> vert
+BORROWED -> gris ou orange
+CONFIRMED -> vert
+CANCELLED -> rouge/gris
+```
+
+### 11.3 `Table.jsx`
+
+Doit accepter :
+
+- colonnes ;
+- lignes ;
+- actions ;
+- etat vide ;
+- loading ;
+- responsive horizontal.
+
+### 11.4 `Modal.jsx`
+
+Utilisations :
+
+- confirmation d'emprunt ;
+- confirmation de retour ;
+- confirmation d'annulation de reservation ;
+- confirmation validation demande ;
+- formulaire de refus avec motif ;
+- ajout/modification livre ;
+- ajout salle.
+
+### 11.5 `Alert.jsx`
+
+Types :
+
+```txt
+success
+error
+warning
+info
+```
+
+Doit afficher le message backend quand disponible.
+
+## 12. Pages a construire par ordre conseille
+
+### Etape 1 - Initialisation technique
+
+Objectifs :
+
+- initialiser Vite React dans `frontend/` ;
+- installer React Router ;
+- configurer `main.jsx` ;
+- configurer `App.jsx` ;
+- importer `global.css` ;
+- verifier que l'application demarre.
+
+Validation :
+
+```txt
+npm run dev
+```
+
+### Etape 2 - Design system global
+
+Objectifs :
+
+- definir les variables CSS ;
+- ajouter les couleurs principales ;
+- ajouter les styles de base ;
+- definir typographie, espacements, cards, boutons, formulaires ;
+- integrer le logo dans la page login et la sidebar ;
+- rendre le layout responsive.
+
+Livrables :
+
+- `global.css` propre ;
+- composants visuellement homogenes ;
+- theme vert campus coherent.
+
+### Etape 3 - API client et gestion des erreurs
+
+Objectifs :
+
+- construire `api.js` ;
+- creer les services API ;
+- centraliser token JWT ;
+- normaliser les erreurs backend ;
+- preparer les messages succes/erreur.
+
+Validation :
+
+- tester un appel `login` ;
+- tester un appel `GET /books` avec token ;
+- tester une erreur volontaire et verifier l'affichage du message.
+
+### Etape 4 - Authentification
+
+Objectifs :
+
+- construire `AuthContext` ;
+- construire `useAuth` ;
+- creer la page `Login` ;
+- stocker token et user ;
+- rediriger selon role ;
+- creer logout.
+
+Comptes de test backend :
+
+```txt
+student@example.com / 1234
+admin@example.com / 1234
+librarian@example.com / 1234
+```
+
+Validation :
+
+- login etudiant -> dashboard etudiant ;
+- login admin -> dashboard admin ;
+- login bibliothecaire -> dashboard bibliothecaire ;
+- erreur login affichee proprement ;
+- logout supprime la session.
+
+### Etape 5 - Routes protegees et layout par role
+
+Objectifs :
+
+- construire `AppRoutes` ;
+- construire `ProtectedRoute` ;
+- connecter `Sidebar` et `Navbar` ;
+- afficher menus differents selon role ;
+- bloquer routes interdites.
+
+Menus etudiant :
+
+```txt
+Dashboard
+Bibliotheque
+Mes emprunts
+Reservation de salles
+Mes reservations
+Nouvelle demande
+Mes demandes
+```
+
+Menus admin :
+
+```txt
+Dashboard
+Gestion des demandes
+Gestion des salles
+Reservations
+```
+
+Menus bibliothecaire :
+
+```txt
+Dashboard
+Catalogue
+Emprunts
+```
+
+### Etape 6 - Dashboard etudiant
+
+Objectifs :
+
+- afficher statistiques utiles ;
+- afficher statut etudiant `valid` ;
+- afficher raccourcis vers services ;
+- calculer les stats depuis API disponibles.
+
+Stats possibles :
+
+- livres empruntes actifs depuis `/books/my-borrowings` ;
+- reservations actives depuis `/rooms/my-reservations` ;
+- demandes en attente depuis `/requests/my-requests` ;
+- statut valide depuis `user.valid`.
+
+Attention : pas d'endpoint dashboard backend. Calculer cote frontend.
+
+### Etape 7 - Bibliotheque etudiant
+
+Page : `Library.jsx`
+
+Objectifs :
+
+- lister les livres depuis `GET /books` ;
+- afficher titre, auteur, statut, date retour si disponible ;
+- recherche locale par titre/auteur ;
+- filtre local par statut ;
+- bouton emprunter si `status === AVAILABLE` ;
+- confirmation avant emprunt ;
+- appel `POST /books/borrow` avec `{ bookId }` ;
+- refresh de la liste apres succes ;
+- bloquer action si etudiant non valide.
+
+Erreurs a afficher :
+
+- livre non disponible ;
+- etudiant non valide ;
+- maximum 3 livres atteint ;
+- erreur serveur.
+
+Limite backend : `GET /books` retourne `returnDate: null` meme pour les livres empruntes. Ne pas promettre une date si elle n'est pas fournie.
+
+### Etape 8 - Mes emprunts
+
+Page : `MyLoans.jsx`
+
+Objectifs :
+
+- lister depuis `GET /books/my-borrowings` ;
+- afficher titre, date emprunt, date retour, statut ;
+- bouton retourner si `returned === false` ;
+- confirmation avant retour ;
+- appel `POST /books/return` avec `{ borrowingId }` ;
+- refresh apres succes.
+
+Limite backend : la reponse actuelle ne contient pas `author`. Si le design exige l'auteur, il faudra soit le masquer, soit croiser avec `GET /books` via `bookId`.
+
+### Etape 9 - Reservation de salles etudiant
+
+Page : `RoomReservation.jsx`
+
+Objectifs :
+
+- lister les salles depuis `GET /rooms` ;
+- afficher nom, capacite, disponibilite ;
+- permettre de choisir date, heure debut, heure fin ;
+- verifier localement que heure fin > heure debut ;
+- bouton reserver si salle disponible ;
+- appel `POST /rooms/reserve` ;
+- refresh apres succes ;
+- bloquer action si etudiant non valide.
+
+Payload backend :
+
+```json
+{
+  "roomId": 1,
+  "reservationDate": "2026-05-10",
+  "startTime": "10:00",
+  "endTime": "12:00"
+}
+```
+
+Erreurs a afficher :
+
+- salle indisponible ;
+- conflit de creneau ;
+- double reservation etudiant ;
+- etudiant non valide ;
+- erreur serveur.
+
+### Etape 10 - Mes reservations
+
+Page : `MyReservations.jsx`
+
+Objectifs :
+
+- lister depuis `GET /rooms/my-reservations` ;
+- afficher salle, date, heure debut, heure fin, statut ;
+- bouton annuler si `status === CONFIRMED` ;
+- confirmation avant annulation ;
+- appel `POST /rooms/cancel-reservation` avec `{ reservationId }` ;
+- refresh apres succes.
+
+Limite backend : la reponse actuelle ne contient pas `roomName`. Il faudra soit afficher `Salle #roomId`, soit croiser avec `GET /rooms`.
+
+### Etape 11 - Nouvelle demande administrative
+
+Page : `AdministrativeRequests.jsx`
+
+Objectifs :
+
+- formulaire simple en moins de 5 etapes ;
+- champ type de demande ;
+- champ description ;
+- validation locale du type ;
+- appel `POST /requests` ;
+- message succes ;
+- lien vers `Mes demandes` ;
+- bloquer action si etudiant non valide.
+
+Payload :
+
+```json
+{
+  "type": "SCHOOL_CERTIFICATE",
+  "description": "I need a school certificate."
+}
+```
+
+Types affiches cote UI :
+
+```txt
+Attestation de scolarite -> SCHOOL_CERTIFICATE
+Certificat de presence -> ATTENDANCE_CERTIFICATE
+Releve de notes -> TRANSCRIPT
+Autre -> OTHER
+```
+
+### Etape 12 - Mes demandes
+
+Page : `MyRequests.jsx`
+
+Objectifs :
+
+- lister depuis `GET /requests/my-requests` ;
+- afficher type, description, date, statut, motif de refus ;
+- badges couleurs ;
+- filtres locaux par statut/type.
+
+### Etape 13 - Dashboard admin
+
+Page : `AdminDashboard.jsx`
+
+Objectifs :
+
+- afficher demandes en attente, approuvees, rejetees ;
+- afficher salles disponibles ;
+- afficher reservations actives si possible.
+
+Sources possibles :
+
+- demandes : `GET /admin/requests` ;
+- salles : `GET /rooms` ;
+- reservations : pas d'endpoint admin reel actuellement.
+
+Limite backend : pas d'endpoint pour toutes les reservations. Afficher une carte `Reservations actives` comme `Non disponible` ou la masquer jusqu'a ajout backend.
+
+### Etape 14 - Gestion des demandes admin
+
+Page : `ManageRequests.jsx`
+
+Objectifs :
+
+- lister toutes les demandes depuis `GET /admin/requests` ;
+- afficher requestId, studentId, type, description, statut, date, motif ;
+- actions valider/refuser uniquement si `PENDING` ;
+- confirmation validation ;
+- modal refus avec motif obligatoire ;
+- appel approve/reject ;
+- refresh apres action.
+
+Limite backend : la reponse actuelle ne contient pas `studentName`. Afficher `Etudiant #studentId` si le nom n'est pas fourni.
+
+### Etape 15 - Gestion des salles admin
+
+Page : `ManageRooms.jsx`
+
+Objectifs :
+
+- lister les salles depuis `GET /rooms` ;
+- ajouter une salle via `POST /admin/rooms` ;
+- changer disponibilite via `POST /admin/rooms/update-availability` ;
+- afficher statut disponible/indisponible ;
+- formulaire propre pour nom, capacite, disponible.
+
+Limites backend :
+
+- pas d'update complet de salle ;
+- pas de delete salle ;
+- pas de creneaux stockes cote backend.
+
+Dans l'UI, ne pas afficher `modifier` et `supprimer` tant que ces endpoints n'existent pas, ou les afficher comme des fonctionnalites a venir.
+
+### Etape 16 - Page reservations admin
+
+Page : `AdminReservations.jsx`
+
+Objectifs :
+
+- preparer la page pour correspondre au menu admin ;
+- afficher un message clair si l'endpoint backend n'existe pas ;
+- ne pas inventer un endpoint non disponible.
+
+Message possible :
+
+```txt
+La consultation globale des reservations n'est pas encore exposee par le backend.
+```
+
+### Etape 17 - Dashboard bibliothecaire
+
+Page : `LibrarianDashboard.jsx`
+
+Objectifs :
+
+- recuperer livres depuis `GET /books` ;
+- calculer total livres ;
+- calculer livres disponibles ;
+- calculer livres empruntes ;
+- afficher raccourcis vers catalogue et emprunts.
+
+Limite backend : pas d'endpoint pour tous les emprunts. Les emprunts actifs peuvent etre estimes depuis les livres `BORROWED`, mais pas lister tous les details.
+
+### Etape 18 - Gestion catalogue bibliothecaire
+
+Page : `ManageBooks.jsx`
+
+Objectifs :
+
+- lister livres depuis `GET /books` ;
+- ajouter livre ;
+- modifier titre/auteur ;
+- supprimer livre ;
+- afficher statut disponible/emprunte ;
+- utiliser modal pour ajout/modification ;
+- confirmation avant suppression.
+
+Endpoints :
+
+```txt
+POST /librarian/books
+POST /librarian/books/update
+POST /librarian/books/delete
+```
+
+Limite backend : pas d'endpoint pour marquer manuellement disponible/emprunte. Ne pas afficher cette action tant que backend ne l'expose pas.
+
+### Etape 19 - Gestion des emprunts bibliothecaire
+
+Page : `ManageLoans.jsx`
+
+Objectifs :
+
+- preparer la page pour le role bibliothecaire ;
+- expliquer clairement que le backend actuel n'a pas d'endpoint `GET all borrowings` ;
+- ne pas appeler d'endpoint inexistant ;
+- eventuellement afficher les livres `BORROWED` comme vue simplifiee.
+
+Limite backend : le retour de livre est actuellement possible par etudiant via `POST /books/return` avec `borrowingId`, mais le bibliothecaire n'a pas d'endpoint dedie pour enregistrer un retour.
+
+## 13. Gestion des donnees et calculs frontend
+
+Comme le backend n'a pas d'endpoint dashboard, calculer certaines stats dans le frontend :
+
+Etudiant :
+
+- emprunts actifs = borrowings ou `returned === false` ;
+- reservations actives = reservations ou `status === CONFIRMED` ;
+- demandes en attente = requests ou `status === PENDING` ;
+- validite = `user.valid`.
+
+Admin :
+
+- demandes en attente/approuvees/rejetees depuis `/admin/requests` ;
+- salles disponibles depuis `/rooms` ;
+- reservations globales non disponibles actuellement.
+
+Bibliothecaire :
+
+- total livres depuis `/books` ;
+- disponibles = `status === AVAILABLE` ;
+- empruntes = `status === BORROWED` ;
+- emprunts actifs detailles non disponibles actuellement.
+
+## 14. Gestion des erreurs et UX
+
+Chaque page qui appelle le backend doit gerer :
+
+- `loading` ;
+- `error` ;
+- `successMessage` ;
+- etat vide ;
+- action en cours ;
+- bouton disabled pendant requete ;
+- message backend affiche tel quel si utile.
+
+Regle : ne jamais laisser une erreur technique brute casser l'interface.
+
+Exemples de messages :
+
+```txt
+Impossible de charger les livres.
+Le backend est indisponible.
+Votre session a expire. Veuillez vous reconnecter.
+Action effectuee avec succes.
+```
+
+## 15. Accessibilite et responsive
+
+Regles a appliquer :
+
+- labels visibles pour les champs ;
+- boutons avec texte clair ;
+- contraste suffisant ;
+- focus visible au clavier ;
+- modals fermables avec bouton ;
+- tableaux lisibles sur mobile ;
+- formulaires utilisables sur mobile ;
+- messages d'erreur proches du champ concerne.
+
+## 16. Performance React
+
+Regles simples a suivre :
+
+- eviter les appels API dupliques ;
+- charger les donnees au montage de page ;
+- utiliser `Promise.all` quand plusieurs appels independants sont necessaires ;
+- garder les composants simples ;
+- ne pas ajouter `useMemo` ou `useCallback` partout inutilement ;
+- extraire les composants reutilises ;
+- eviter les grosses dependances UI ;
+- garder les listes filtrees simples et locales.
+
+## 17. Ordre global de realisation recommande
+
+Ordre conseille :
+
+1. Initialiser Vite React et dependances.
+2. Configurer `main.jsx`, `App.jsx`, routing de base.
+3. Construire `global.css` avec design tokens et palette verte.
+4. Construire composants UI de base.
+5. Construire `api.js` et services API.
+6. Construire AuthContext, useAuth, login, logout.
+7. Construire routes protegees et layouts par role.
+8. Construire dashboard etudiant.
+9. Construire pages etudiant : bibliotheque, emprunts, salles, reservations, demandes.
+10. Construire dashboard admin.
+11. Construire gestion demandes admin.
+12. Construire gestion salles admin.
+13. Construire page reservations admin avec message limite backend.
+14. Construire dashboard bibliothecaire.
+15. Construire gestion catalogue bibliothecaire.
+16. Construire page emprunts bibliothecaire avec limite backend explicite.
+17. Ajouter responsive mobile/tablette.
+18. Ajouter finitions design, hover, focus, loading, empty states.
+19. Tester avec les 3 comptes de seed.
+20. Faire une verification finale contre le contrat JWT.
+
+## 18. Verification finale avant livraison
+
+Checklist frontend :
+
+- login fonctionne pour les 3 roles ;
+- token stocke et envoye correctement ;
+- logout fonctionne ;
+- routes protegees fonctionnent ;
+- chaque role voit son menu ;
+- etudiant non valide est bloque pour les actions sensibles ;
+- livres listes ;
+- emprunt livre fonctionne ;
+- retour livre fonctionne ;
+- reservations salles fonctionnent ;
+- annulation reservation fonctionne ;
+- soumission demande fonctionne ;
+- suivi demandes fonctionne ;
+- admin approuve/refuse demandes ;
+- admin ajoute salle et change disponibilite ;
+- bibliothecaire ajoute/modifie/supprime livre ;
+- erreurs backend affichees ;
+- succes affiches ;
+- interface responsive ;
+- logo affiche correctement ;
+- couleurs principales utilisees de maniere coherente.
+
+## 19. Points backend a surveiller pendant integration
+
+Le frontend doit etre construit selon le backend reel, mais ces limites doivent etre notees :
+
+- CORS probablement absent ;
+- `GET /api/rooms` public alors que le contrat JWT dit protege ;
+- pas d'endpoint dashboard ;
+- pas d'endpoint admin pour toutes les reservations ;
+- pas d'endpoint bibliothecaire pour tous les emprunts ;
+- `my-reservations` ne retourne pas `roomName` ;
+- `admin/requests` ne retourne pas `studentName` ;
+- `my-borrowings` ne retourne pas `author` ;
+- gestion salles incomplete par rapport au prompt initial ;
+- gestion emprunts bibliothecaire incomplete par rapport au prompt initial.
+
+Regle importante : ne pas inventer des endpoints cote frontend. Si une donnee manque, afficher une version degradee proprement ou noter la limitation.
+
+## 20. Definition de fini
+
+Le frontend sera considere pret quand :
+
+- il demarre sans erreur ;
+- il communique avec le backend Java JWT ;
+- il respecte les roles ;
+- il respecte les enums backend ;
+- il utilise le logo et la palette verte ;
+- il affiche les erreurs et succes ;
+- il est utilisable sur ordinateur et mobile ;
+- il couvre les fonctionnalites disponibles dans le backend ;
+- il indique clairement les fonctionnalites non encore exposees par le backend.

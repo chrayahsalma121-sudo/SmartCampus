@@ -1,0 +1,602 @@
+Je travaille sur un projet intitulé Smart Campus – CampusServices, plus précisément la brique Gestion des Services du Campus.
+Le backend du projet est déjà préparé. Je veux maintenant créer un frontend complet, clair, moderne et fonctionnel qui communique avec ce backend.
+
+Le frontend doit représenter une plateforme universitaire permettant aux étudiants d’utiliser plusieurs services du campus depuis une seule interface.
+
+Le module couvre trois grands services :
+
+Gestion de la bibliothèque
+Réservation de salles de travail
+Gestion des demandes administratives
+
+Le système doit être utilisé par plusieurs types d’acteurs :
+
+Étudiant
+Administrateur
+Bibliothécaire
+
+Il existe aussi un système externe appelé EnrollSys, utilisé côté backend pour vérifier si un étudiant est valide avant qu’il puisse utiliser les services.
+
+1. Objectif général du frontend
+
+Créer une interface web pour le système CampusServices.
+
+L’interface doit permettre aux étudiants de :
+
+consulter les livres disponibles dans la bibliothèque ;
+emprunter un livre ;
+retourner un livre emprunté ;
+consulter les salles disponibles ;
+réserver une salle de travail ;
+annuler une réservation ;
+soumettre une demande administrative ;
+consulter l’état de ses demandes.
+
+L’interface doit permettre à l’administrateur de :
+
+consulter les demandes administratives reçues ;
+valider ou refuser une demande ;
+ajouter un motif de refus ;
+gérer la disponibilité des salles.
+
+L’interface doit permettre au bibliothécaire de :
+
+consulter le catalogue de livres ;
+ajouter, modifier ou supprimer un livre ;
+enregistrer les emprunts ;
+enregistrer les retours ;
+voir l’état de disponibilité des livres.
+2. Style général demandé
+
+Le frontend doit être :
+
+moderne ;
+simple à utiliser ;
+responsive ;
+adapté aux étudiants et au personnel universitaire ;
+clair, avec une navigation facile ;
+structuré avec des pages séparées selon les fonctionnalités.
+
+L’interface doit avoir un design de type dashboard universitaire.
+
+Utiliser une organisation propre avec :
+
+une barre latérale ou un menu de navigation ;
+une page d’accueil ;
+des cartes statistiques ;
+des tableaux de données ;
+des formulaires propres ;
+des boutons d’action visibles ;
+des messages de succès et d’erreur.
+3. Pages à créer
+3.1 Page de connexion
+
+Créer une page de connexion simple.
+
+Champs nécessaires :
+
+identifiant étudiant ou email ;
+mot de passe ;
+bouton de connexion.
+
+Après connexion, l’utilisateur doit être redirigé vers son dashboard selon son rôle :
+
+Étudiant → Dashboard Étudiant
+Administrateur → Dashboard Administrateur
+Bibliothécaire → Dashboard Bibliothécaire
+
+Prévoir l’affichage des erreurs :
+
+identifiants incorrects ;
+utilisateur non valide ;
+accès refusé.
+4. Dashboard Étudiant
+
+Le dashboard étudiant doit afficher un résumé des services disponibles.
+
+Il doit contenir des cartes comme :
+
+nombre de livres empruntés ;
+nombre de réservations actives ;
+nombre de demandes administratives en attente ;
+statut de l’étudiant : valide ou non valide.
+
+Le dashboard doit proposer un accès rapide vers :
+
+Bibliothèque ;
+Réservation de salles ;
+Demandes administratives ;
+Suivi de mes demandes ;
+Mes emprunts ;
+Mes réservations.
+5. Module Bibliothèque côté Étudiant
+
+Créer une page Bibliothèque.
+
+Cette page doit afficher le catalogue des livres sous forme de tableau ou de cartes.
+
+Chaque livre doit afficher :
+
+titre du livre ;
+auteur ;
+disponibilité : Disponible ou Emprunté ;
+date de retour prévue si le livre est déjà emprunté ;
+bouton “Emprunter” si le livre est disponible.
+
+Fonctionnalités attendues :
+
+rechercher un livre par titre ;
+filtrer les livres par disponibilité ;
+consulter la liste des livres ;
+emprunter un livre disponible.
+
+Quand l’étudiant clique sur Emprunter :
+
+afficher une confirmation ;
+envoyer la demande au backend ;
+si l’étudiant est valide et que le livre est disponible, afficher un message de succès ;
+mettre à jour l’état du livre en “Emprunté” ;
+afficher la date de retour prévue.
+
+Prévoir les erreurs suivantes :
+
+livre non disponible ;
+étudiant non valide ;
+nombre maximum de livres atteint ;
+erreur serveur.
+
+Règle métier importante :
+
+un étudiant ne peut pas emprunter plus de 3 livres simultanément ;
+un livre ne peut être emprunté que s’il est disponible.
+6. Page Mes emprunts
+
+Créer une page permettant à l’étudiant de consulter ses livres empruntés.
+
+Chaque emprunt doit afficher :
+
+titre du livre ;
+auteur ;
+date d’emprunt ;
+date de retour prévue ;
+statut ;
+bouton “Retourner le livre”.
+
+Quand l’étudiant clique sur Retourner le livre :
+
+afficher une confirmation ;
+envoyer l’action au backend ;
+afficher un message de succès ;
+mettre à jour la disponibilité du livre.
+7. Module Réservation de salles côté Étudiant
+
+Créer une page Réservation de salles.
+
+Cette page doit afficher les salles disponibles avec :
+
+nom de la salle ;
+capacité ;
+créneaux disponibles ;
+statut de disponibilité ;
+bouton “Réserver”.
+
+L’étudiant doit pouvoir :
+
+consulter les salles ;
+choisir une salle ;
+choisir un créneau horaire ;
+confirmer la réservation.
+
+Processus de réservation :
+
+l’étudiant consulte les salles disponibles ;
+il choisit une salle ;
+il choisit un créneau libre ;
+il confirme la réservation ;
+le frontend envoie la demande au backend ;
+si le créneau est disponible, afficher un message de succès ;
+mettre à jour le planning.
+
+Prévoir les erreurs suivantes :
+
+créneau déjà réservé ;
+étudiant non valide ;
+étudiant possède déjà une réservation au même créneau ;
+erreur serveur.
+
+Règles métier importantes :
+
+une salle ne peut être réservée que sur un créneau libre ;
+un étudiant ne peut pas avoir deux réservations au même créneau ;
+seul l’administrateur peut gérer la disponibilité des salles.
+8. Page Mes réservations
+
+Créer une page permettant à l’étudiant de consulter ses réservations.
+
+Chaque réservation doit afficher :
+
+nom de la salle ;
+date ;
+heure de début ;
+heure de fin ;
+statut ;
+bouton “Annuler”.
+
+Quand l’étudiant clique sur Annuler :
+
+afficher une confirmation ;
+envoyer l’annulation au backend ;
+afficher un message de succès ;
+libérer le créneau dans l’interface.
+9. Module Demandes administratives côté Étudiant
+
+Créer une page Demandes administratives.
+
+L’étudiant doit pouvoir soumettre une demande administrative.
+
+Le formulaire doit contenir :
+
+type de demande ;
+informations complémentaires ;
+bouton de soumission.
+
+Les types de demandes peuvent être :
+
+attestation de scolarité ;
+certificat de présence ;
+autre document administratif.
+
+Après soumission :
+
+le frontend envoie la demande au backend ;
+la demande est enregistrée avec le statut En attente ;
+afficher un message de succès ;
+rediriger ou proposer un lien vers “Mes demandes”.
+
+Prévoir les erreurs suivantes :
+
+formulaire incomplet ;
+étudiant non valide ;
+erreur serveur.
+
+Données obligatoires :
+
+type de demande ;
+date de soumission ;
+identifiant de l’étudiant.
+10. Page Mes demandes
+
+Créer une page permettant à l’étudiant de suivre l’état de ses demandes administratives.
+
+Chaque demande doit afficher :
+
+type de demande ;
+date de soumission ;
+état de la demande ;
+motif de refus si la demande est refusée.
+
+Les états possibles sont :
+
+En attente ;
+Validée ;
+Refusée.
+
+Utiliser des badges de couleur pour les statuts :
+
+En attente : orange ;
+Validée : vert ;
+Refusée : rouge.
+11. Dashboard Administrateur
+
+Créer un dashboard pour l’administrateur.
+
+Il doit afficher :
+
+nombre de demandes en attente ;
+nombre de demandes validées ;
+nombre de demandes refusées ;
+nombre de salles disponibles ;
+nombre de réservations actives.
+
+Le menu administrateur doit contenir :
+
+Gestion des demandes ;
+Gestion des salles ;
+Réservations ;
+Dashboard.
+12. Gestion des demandes côté Administrateur
+
+Créer une page Gestion des demandes administratives.
+
+Afficher toutes les demandes sous forme de tableau.
+
+Colonnes du tableau :
+
+identifiant de la demande ;
+nom de l’étudiant ;
+identifiant étudiant ;
+type de demande ;
+date de soumission ;
+statut ;
+actions.
+
+Actions disponibles :
+
+voir les détails ;
+valider ;
+refuser.
+
+Quand l’administrateur clique sur Valider :
+
+afficher une confirmation ;
+envoyer la validation au backend ;
+mettre à jour le statut en “Validée”.
+
+Quand l’administrateur clique sur Refuser :
+
+ouvrir une fenêtre ou un formulaire ;
+demander le motif du refus ;
+envoyer le refus au backend ;
+mettre à jour le statut en “Refusée” ;
+afficher le motif de refus.
+13. Gestion des salles côté Administrateur
+
+Créer une page Gestion des salles.
+
+L’administrateur doit pouvoir :
+
+voir la liste des salles ;
+ajouter une salle ;
+modifier une salle ;
+supprimer une salle ;
+gérer les créneaux disponibles.
+
+Chaque salle doit contenir :
+
+nom de la salle ;
+capacité ;
+créneaux disponibles ;
+statut.
+
+Prévoir un formulaire d’ajout ou de modification avec :
+
+nom de la salle ;
+capacité ;
+créneaux disponibles.
+14. Dashboard Bibliothécaire
+
+Créer un dashboard pour le bibliothécaire.
+
+Il doit afficher :
+
+nombre total de livres ;
+nombre de livres disponibles ;
+nombre de livres empruntés ;
+nombre d’emprunts actifs.
+
+Le menu bibliothécaire doit contenir :
+
+Catalogue ;
+Emprunts ;
+Retours ;
+Dashboard.
+15. Gestion du catalogue côté Bibliothécaire
+
+Créer une page Gestion du catalogue.
+
+Le bibliothécaire doit pouvoir :
+
+consulter tous les livres ;
+ajouter un livre ;
+modifier un livre ;
+supprimer un livre ;
+changer la disponibilité d’un livre.
+
+Chaque livre doit afficher :
+
+titre ;
+auteur ;
+disponibilité ;
+date de retour prévue si emprunté ;
+actions.
+
+Actions disponibles :
+
+ajouter ;
+modifier ;
+supprimer ;
+marquer comme disponible ;
+marquer comme emprunté.
+16. Gestion des emprunts et retours côté Bibliothécaire
+
+Créer une page Gestion des emprunts.
+
+Afficher la liste des emprunts avec :
+
+identifiant emprunt ;
+nom étudiant ;
+identifiant étudiant ;
+titre du livre ;
+date d’emprunt ;
+date de retour prévue ;
+statut.
+
+Actions :
+
+enregistrer un retour ;
+consulter les détails.
+
+Quand le bibliothécaire enregistre un retour :
+
+envoyer l’action au backend ;
+mettre à jour le statut de l’emprunt ;
+rendre le livre disponible ;
+afficher un message de succès.
+17. Données principales à utiliser dans le frontend
+Étudiant
+
+Un étudiant contient :
+
+identifiant étudiant ;
+nom ;
+prénom ;
+filière ;
+statut : valide ou non valide.
+Livre
+
+Un livre contient :
+
+identifiant du livre ;
+titre ;
+auteur ;
+disponibilité ;
+date de retour prévue.
+Salle
+
+Une salle contient :
+
+identifiant de la salle ;
+nom de la salle ;
+capacité ;
+créneaux disponibles.
+Demande administrative
+
+Une demande contient :
+
+identifiant de la demande ;
+identifiant étudiant ;
+nom étudiant ;
+type de demande ;
+date de soumission ;
+état ;
+motif de refus.
+Réservation
+
+Une réservation contient :
+
+identifiant de réservation ;
+identifiant étudiant ;
+nom de la salle ;
+date ;
+heure de début ;
+heure de fin ;
+statut.
+18. Contraintes importantes
+
+Le frontend doit respecter ces règles :
+
+Un étudiant non valide ne peut accéder à aucun service.
+Un livre ne peut être emprunté que s’il est disponible.
+Un étudiant ne peut pas avoir plus de 3 livres empruntés en même temps.
+Une salle ne peut être réservée que sur un créneau libre.
+Un étudiant ne peut pas avoir deux réservations au même créneau.
+Une demande administrative doit obligatoirement avoir un type, une date de soumission et un identifiant étudiant.
+Une demande administrative peut passer de “En attente” vers “Validée” ou “Refusée”.
+La disponibilité des salles est gérée uniquement par l’administrateur.
+19. Exigences non fonctionnelles du frontend
+
+Le frontend doit être :
+
+rapide ;
+clair ;
+responsive ;
+facile à utiliser ;
+compatible avec ordinateur, tablette et mobile ;
+capable d’afficher les erreurs venant du backend ;
+capable d’afficher des messages de succès ;
+organisé avec des composants réutilisables.
+
+L’utilisateur doit pouvoir effectuer une demande administrative en moins de 5 étapes.
+
+20. Structure frontend souhaitée
+
+Créer une structure de projet propre, par exemple :
+
+src/
+ ├── components/
+ │    ├── Navbar.jsx
+ │    ├── Sidebar.jsx
+ │    ├── Card.jsx
+ │    ├── Table.jsx
+ │    ├── Modal.jsx
+ │    └── StatusBadge.jsx
+ │
+ ├── pages/
+ │    ├── Login.jsx
+ │    ├── StudentDashboard.jsx
+ │    ├── Library.jsx
+ │    ├── MyLoans.jsx
+ │    ├── RoomReservation.jsx
+ │    ├── MyReservations.jsx
+ │    ├── AdministrativeRequests.jsx
+ │    ├── MyRequests.jsx
+ │    ├── AdminDashboard.jsx
+ │    ├── ManageRequests.jsx
+ │    ├── ManageRooms.jsx
+ │    ├── LibrarianDashboard.jsx
+ │    ├── ManageBooks.jsx
+ │    └── ManageLoans.jsx
+ │
+ ├── services/
+ │    ├── api.js
+ │    ├── authService.js
+ │    ├── bookService.js
+ │    ├── roomService.js
+ │    ├── requestService.js
+ │    └── loanService.js
+ │
+ ├── routes/
+ │    └── AppRoutes.jsx
+ │
+ ├── App.jsx
+ └── main.jsx
+21. Communication avec le backend
+
+Préparer un fichier api.js pour centraliser les appels API.
+
+Exemple de routes possibles à adapter selon le backend :
+
+POST /auth/login
+
+GET /books
+POST /books
+PUT /books/:id
+DELETE /books/:id
+POST /books/:id/borrow
+POST /books/:id/return
+
+GET /rooms
+POST /rooms
+PUT /rooms/:id
+DELETE /rooms/:id
+POST /rooms/:id/reserve
+DELETE /reservations/:id
+
+GET /requests
+POST /requests
+PUT /requests/:id/validate
+PUT /requests/:id/refuse
+
+GET /students/:id/status
+
+Le frontend doit être préparé pour recevoir les données depuis le backend, pas seulement utiliser des données statiques.
+
+22. Résultat attendu
+
+Je veux que tu génères un frontend complet pour ce projet.
+
+Le résultat doit contenir :
+
+les pages nécessaires ;
+les composants réutilisables ;
+la navigation selon les rôles ;
+les formulaires ;
+les tableaux ;
+les boutons d’action ;
+la gestion des états ;
+la gestion des erreurs ;
+les appels API vers le backend ;
+un design propre et moderne ;
+une interface responsive.
+
+Le projet doit être prêt à être connecté au backend existant.

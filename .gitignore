@@ -1,0 +1,27 @@
+# Dependencies
+node_modules/
+
+# Frontend build output
+dist/
+frontend/dist/
+
+# Java build output
+out/
+backend/out/
+*.class
+
+# Logs
+*.log
+server.log
+server-err.log
+
+# Local environment files
+.env
+.env.*
+!.env.example
+
+# OS and editor files
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
