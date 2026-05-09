@@ -132,6 +132,16 @@ public class RoomService {
     }
 
     // =========================================================================
+    // ADMIN: LIST ALL RESERVATIONS  →  GET /api/admin/reservations
+    // =========================================================================
+    public List<Reservation> listAllReservations(AuthenticatedUser authUser) throws Exception {
+        if (authUser.getRole() != UserRole.ADMIN) {
+            throw new Exception("Only admins can view all reservations.");
+        }
+        return reservationRepo.findAll();
+    }
+
+    // =========================================================================
     // ADMIN: UPDATE ROOM AVAILABILITY  →  POST /api/admin/rooms/update-availability
     // Body: { roomId, available }
     // =========================================================================

@@ -85,6 +85,27 @@ public class ReservationRepository {
     }
 
     // -------------------------------------------------------------------------
+    // All reservations for the system (admin view)
+    // -------------------------------------------------------------------------
+    public List<Reservation> findAll() throws SQLException {
+        List<Reservation> list = new ArrayList<>();
+        String sql = """
+            SELECT reservation_id, student_id, room_id, reservation_date,
+                   start_time, end_time, status
+            FROM reservations
+            ORDER BY reservation_date DESC, start_time DESC
+            """;
+
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+
+            while (rs.next()) list.add(mapRow(rs));
+        }
+        return list;
+    }
+
+    // -------------------------------------------------------------------------
     // Conflict check 1: is the room already booked for this slot?
     // -------------------------------------------------------------------------
     public boolean roomHasConflict(int roomId, LocalDate date,

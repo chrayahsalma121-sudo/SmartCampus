@@ -82,6 +82,26 @@ public class BorrowingRepository {
     }
 
     // -------------------------------------------------------------------------
+    // All borrowings for the system (librarian view)
+    // -------------------------------------------------------------------------
+    public List<Borrowing> findAll() throws SQLException {
+        List<Borrowing> list = new ArrayList<>();
+        String sql = """
+            SELECT borrowing_id, student_id, book_id, borrow_date, return_date, returned
+            FROM borrowings
+            ORDER BY borrow_date DESC
+            """;
+
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+
+            while (rs.next()) list.add(mapRow(rs));
+        }
+        return list;
+    }
+
+    // -------------------------------------------------------------------------
     // Count active (not yet returned) borrowings for a student — enforces the 3-book limit
     // -------------------------------------------------------------------------
     public int countActiveBorrowings(int studentId) throws SQLException {

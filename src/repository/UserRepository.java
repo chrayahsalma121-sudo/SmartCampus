@@ -5,6 +5,8 @@ import enums.UserRole;
 import model.User;
 
 import java.sql.*;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * UserRepository — queries the `users` table.
@@ -43,6 +45,58 @@ public class UserRepository {
             }
         }
         return null;
+    }
+
+    // -------------------------------------------------------------------------
+    // Create new user — used by admin
+    // -------------------------------------------------------------------------
+    public int createUser(String fullName, String email, String password, UserRole role) throws SQLException {
+        String sql = "INSERT INTO users (full_name, email, password, role) VALUES (?, ?, ?, ?)";
+        
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+            
+            ps.setString(1, fullName);
+            ps.setString(2, email);
+            ps.setString(3, password);
+            ps.setString(4, role.name());
+            ps.executeUpdate();
+            
+            try (ResultSet rs = ps.getGeneratedKeys()) {
+                if (rs.next()) return rs.getInt(1);
+            }
+        }
+        throw new SQLException("Failed to create user, no ID obtained.");
+    }
+
+    // -------------------------------------------------------------------------
+    // Find all users (admin view)
+    // -------------------------------------------------------------------------
+    public List<User> findAll() throws SQLException {
+        List<User> list = new ArrayList<>();
+        String sql = "SELECT user_id, full_name, email, password, role FROM users";
+
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+
+            while (rs.next()) list.add(mapRow(rs));
+        }
+        return list;
+    }
+
+    // -------------------------------------------------------------------------
+    // Delete a user
+    // -------------------------------------------------------------------------
+    public boolean delete(int userId) throws SQLException {
+        String sql = "DELETE FROM users WHERE user_id = ?";
+
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setInt(1, userId);
+            return ps.executeUpdate() > 0;
+        }
     }
 
     // -------------------------------------------------------------------------

@@ -71,6 +71,12 @@ public class RoomController implements HttpHandler {
             } else if (method.equals("POST") && path.equals("/api/admin/rooms")) {
                 handleAddRoom(exchange);
 
+            // ------------------------------------------------------------------
+            // GET /api/admin/reservations
+            // ------------------------------------------------------------------
+            } else if (method.equals("GET") && path.equals("/api/admin/reservations")) {
+                handleAllReservations(exchange);
+
             } else {
                 ResponseUtil.sendError(exchange, 404, "Endpoint not found.");
             }
@@ -227,6 +233,33 @@ public class RoomController implements HttpHandler {
             Room room = roomService.addRoom(authUser, name, capacity, available);
 
             ResponseUtil.sendSuccess(exchange, 201, "Room added successfully.", roomToJson(room));
+
+        } catch (Exception e) {
+            ResponseUtil.sendError(exchange, 400, e.getMessage());
+        }
+    }
+
+    // =========================================================================
+    // GET /api/admin/reservations
+    // =========================================================================
+    private void handleAllReservations(HttpExchange exchange) throws IOException {
+        try {
+            AuthenticatedUser authUser = AuthFilter.getAuthenticatedUser(exchange);
+            if (authUser == null) {
+                ResponseUtil.sendError(exchange, 401, "Unauthorized. Token missing or invalid.");
+                return;
+            }
+
+            List<Reservation> reservations = roomService.listAllReservations(authUser);
+
+            StringBuilder sb = new StringBuilder("[");
+            for (int i = 0; i < reservations.size(); i++) {
+                sb.append(reservationToJson(reservations.get(i)));
+                if (i < reservations.size() - 1) sb.append(",");
+            }
+            sb.append("]");
+
+            ResponseUtil.sendSuccess(exchange, 200, "All reservations retrieved.", sb.toString());
 
         } catch (Exception e) {
             ResponseUtil.sendError(exchange, 400, e.getMessage());

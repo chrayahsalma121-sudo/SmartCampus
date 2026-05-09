@@ -21,6 +21,7 @@ public class Main {
         server.createContext("/api/admin/rooms",    new RoomController());
         server.createContext("/api/requests",       new AdministrativeRequestController());
         server.createContext("/api/admin/requests", new AdministrativeRequestController());
+        server.createContext("/api/admin/users",    new controller.AdminUserController());
 
         server.setExecutor(null);
         server.start();

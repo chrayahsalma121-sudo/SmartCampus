@@ -69,6 +69,12 @@ public class LibraryController implements HttpHandler {
                 handleAddBook(exchange);
 
             // ------------------------------------------------------------------
+            // GET /api/librarian/borrowings
+            // ------------------------------------------------------------------
+            } else if (method.equals("GET") && path.equals("/api/librarian/borrowings")) {
+                handleAllBorrowings(exchange);
+
+            // ------------------------------------------------------------------
             // POST /api/librarian/books/update
             // ------------------------------------------------------------------
             } else if (method.equals("POST") && path.equals("/api/librarian/books/update")) {
@@ -100,7 +106,13 @@ public class LibraryController implements HttpHandler {
                 return;
             }
 
-            List<Book> books = libraryService.listBooks(authUser);
+            String query = exchange.getRequestURI().getQuery();
+            String search = null;
+            if (query != null && query.startsWith("search=")) {
+                search = java.net.URLDecoder.decode(query.substring(7), java.nio.charset.StandardCharsets.UTF_8);
+            }
+
+            List<Book> books = libraryService.listBooks(authUser, search);
 
             StringBuilder sb = new StringBuilder("[");
             for (int i = 0; i < books.size(); i++) {
@@ -187,6 +199,33 @@ public class LibraryController implements HttpHandler {
             sb.append("]");
 
             ResponseUtil.sendSuccess(exchange, 200, "Borrowings retrieved successfully", sb.toString());
+
+        } catch (Exception e) {
+            ResponseUtil.sendError(exchange, 400, e.getMessage());
+        }
+    }
+
+    // =========================================================================
+    // GET /api/librarian/borrowings
+    // =========================================================================
+    private void handleAllBorrowings(HttpExchange exchange) throws IOException {
+        try {
+            AuthenticatedUser authUser = AuthFilter.getAuthenticatedUser(exchange);
+            if (authUser == null) {
+                ResponseUtil.sendError(exchange, 401, "Missing authorization token.");
+                return;
+            }
+
+            List<Borrowing> borrowings = libraryService.listAllBorrowings(authUser);
+
+            StringBuilder sb = new StringBuilder("[");
+            for (int i = 0; i < borrowings.size(); i++) {
+                sb.append(myBorrowingToJson(borrowings.get(i)));
+                if (i < borrowings.size() - 1) sb.append(",");
+            }
+            sb.append("]");
+
+            ResponseUtil.sendSuccess(exchange, 200, "All borrowings retrieved.", sb.toString());
 
         } catch (Exception e) {
             ResponseUtil.sendError(exchange, 400, e.getMessage());

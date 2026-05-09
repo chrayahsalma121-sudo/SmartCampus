@@ -51,6 +51,18 @@ public class LibrarianRepository {
     }
 
     // -------------------------------------------------------------------------
+    // Create new librarian
+    // -------------------------------------------------------------------------
+    public void createLibrarian(int userId) throws SQLException {
+        String sql = "INSERT INTO librarians (user_id) VALUES (?)";
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, userId);
+            ps.executeUpdate();
+        }
+    }
+
+    // -------------------------------------------------------------------------
     // Map ResultSet row → Librarian
     // -------------------------------------------------------------------------
     private Librarian mapRow(ResultSet rs) throws SQLException {
