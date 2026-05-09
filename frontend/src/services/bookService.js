@@ -1,7 +1,8 @@
 import { api } from "./api.js";
 
-export async function getBooks() {
-  const response = await api.get("/books");
+export async function getBooks(search = "") {
+  const query = search.trim() ? `?search=${encodeURIComponent(search.trim())}` : "";
+  const response = await api.get(`/books${query}`);
   return response.data || [];
 }
 

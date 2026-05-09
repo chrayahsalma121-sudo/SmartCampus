@@ -25,6 +25,7 @@ import java.util.Map;
  *   POST /api/admin/rooms/update-availability → updateAvailability
  *   POST /api/admin/rooms                     → addRoom
  *   GET  /api/admin/rooms/reservations        → admin list reservations
+ *   GET  /api/admin/reservations              → admin list reservations alias
  */
 public class RoomController implements HttpHandler {
 
@@ -75,7 +76,7 @@ public class RoomController implements HttpHandler {
             // ------------------------------------------------------------------
             // GET /api/admin/rooms/reservations  — admin views all reservations
             // ------------------------------------------------------------------
-            } else if (method.equals("GET") && path.equals("/api/admin/rooms/reservations")) {
+            } else if (method.equals("GET") && (path.equals("/api/admin/rooms/reservations") || path.equals("/api/admin/reservations"))) {
                 handleListAllReservations(exchange);
 
             } else {

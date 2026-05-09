@@ -72,6 +72,21 @@ public class StudentRepository {
     }
 
     // -------------------------------------------------------------------------
+    // Create new student role row — used by admin user management
+    // -------------------------------------------------------------------------
+    public void createStudent(int userId, String filiere) throws SQLException {
+        String sql = "INSERT INTO students (user_id, filiere) VALUES (?, ?)";
+
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setInt(1, userId);
+            ps.setString(2, filiere);
+            ps.executeUpdate();
+        }
+    }
+
+    // -------------------------------------------------------------------------
     // Map ResultSet row → Student
     // -------------------------------------------------------------------------
     private Student mapRow(ResultSet rs) throws SQLException {

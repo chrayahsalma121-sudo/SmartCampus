@@ -2,6 +2,7 @@ import com.sun.net.httpserver.HttpServer;
 import com.sun.net.httpserver.HttpContext;
 import com.sun.net.httpserver.HttpHandler;
 import controller.AdministrativeRequestController;
+import controller.AdminUserController;
 import controller.AuthController;
 import controller.LibraryController;
 import controller.RoomController;
@@ -23,8 +24,10 @@ public class Main {
         // ── Salma's routes ───────────────────────────────────────────────────
         createApiContext(server, "/api/rooms",          new RoomController());
         createApiContext(server, "/api/admin/rooms",    new RoomController());
+        createApiContext(server, "/api/admin/reservations", new RoomController());
         createApiContext(server, "/api/requests",       new AdministrativeRequestController());
         createApiContext(server, "/api/admin/requests", new AdministrativeRequestController());
+        createApiContext(server, "/api/admin/users",    new AdminUserController());
 
         createApiContext(server, "/", exchange -> {
             String path = exchange.getRequestURI().getPath();

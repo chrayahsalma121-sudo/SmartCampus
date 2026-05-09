@@ -51,6 +51,20 @@ public class AdminRepository {
     }
 
     // -------------------------------------------------------------------------
+    // Create new admin role row — used by admin user management
+    // -------------------------------------------------------------------------
+    public void createAdmin(int userId) throws SQLException {
+        String sql = "INSERT INTO admins (user_id) VALUES (?)";
+
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setInt(1, userId);
+            ps.executeUpdate();
+        }
+    }
+
+    // -------------------------------------------------------------------------
     // Map ResultSet row → Admin
     // -------------------------------------------------------------------------
     private Admin mapRow(ResultSet rs) throws SQLException {

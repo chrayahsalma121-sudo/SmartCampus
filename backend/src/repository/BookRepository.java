@@ -18,14 +18,31 @@ public class BookRepository {
     // Find all books
     // -------------------------------------------------------------------------
     public List<Book> findAll() throws SQLException {
+        return findAll(null);
+    }
+
+    // -------------------------------------------------------------------------
+    // Find all books, optionally filtered by title or author
+    // -------------------------------------------------------------------------
+    public List<Book> findAll(String search) throws SQLException {
         List<Book> books = new ArrayList<>();
-        String sql = "SELECT book_id, title, author, status FROM books ORDER BY book_id";
+        boolean hasSearch = search != null && !search.isBlank();
+        String sql = hasSearch
+            ? "SELECT book_id, title, author, status FROM books WHERE title LIKE ? OR author LIKE ? ORDER BY book_id"
+            : "SELECT book_id, title, author, status FROM books ORDER BY book_id";
 
         try (Connection conn = DatabaseConnection.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql);
-             ResultSet rs = ps.executeQuery()) {
+             PreparedStatement ps = conn.prepareStatement(sql)) {
 
-            while (rs.next()) books.add(mapRow(rs));
+            if (hasSearch) {
+                String term = "%" + search.trim() + "%";
+                ps.setString(1, term);
+                ps.setString(2, term);
+            }
+
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) books.add(mapRow(rs));
+            }
         }
         return books;
     }

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useDeferredValue, useEffect, useState } from "react";
 import Alert from "../components/Alert.jsx";
 import Button from "../components/Button.jsx";
 import Modal from "../components/Modal.jsx";
@@ -12,6 +12,8 @@ const emptyForm = { title: "", author: "" };
 
 export default function ManageBooks() {
   const [books, setBooks] = useState([]);
+  const [search, setSearch] = useState("");
+  const deferredSearch = useDeferredValue(search);
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState(false);
   const [modalMode, setModalMode] = useState(null);
@@ -21,11 +23,11 @@ export default function ManageBooks() {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
 
-  async function loadBooks() {
+  async function loadBooks(searchTerm = deferredSearch) {
     setLoading(true);
     setError("");
     try {
-      setBooks(await getBooks());
+      setBooks(await getBooks(searchTerm));
     } catch (err) {
       setError(getErrorMessage(err, "Impossible de charger le catalogue."));
     } finally {
@@ -34,8 +36,8 @@ export default function ManageBooks() {
   }
 
   useEffect(() => {
-    loadBooks();
-  }, []);
+    loadBooks(deferredSearch);
+  }, [deferredSearch]);
 
   function openAdd() {
     setModalMode("add");
@@ -67,7 +69,7 @@ export default function ManageBooks() {
       setSuccess(response.message || "Catalogue mis a jour.");
       setModalMode(null);
       setSelectedBook(null);
-      await loadBooks();
+      await loadBooks(deferredSearch);
     } catch (err) {
       setError(getErrorMessage(err, "Impossible d'enregistrer le livre."));
     } finally {
@@ -84,7 +86,7 @@ export default function ManageBooks() {
       const response = await deleteBook(deleteTarget.bookId);
       setSuccess(response.message || "Livre supprime.");
       setDeleteTarget(null);
-      await loadBooks();
+      await loadBooks(deferredSearch);
     } catch (err) {
       setError(getErrorMessage(err, "Impossible de supprimer le livre."));
     } finally {
@@ -130,6 +132,18 @@ export default function ManageBooks() {
       <Alert type="error">{error}</Alert>
       <Alert type="success">{success}</Alert>
 
+      <div className="toolbar">
+        <input
+          id="catalog-search"
+          name="catalogSearch"
+          type="search"
+          value={search}
+          onChange={(event) => setSearch(event.target.value)}
+          placeholder="Rechercher par titre ou auteur"
+          aria-label="Rechercher un livre"
+        />
+      </div>
+
       <Table columns={columns} data={books} rowKey="bookId" loading={loading} emptyMessage="Aucun livre trouve." />
 
       <Modal
@@ -143,11 +157,21 @@ export default function ManageBooks() {
         <div className="form-grid one-column">
           <label>
             Titre
-            <input value={form.title} onChange={(event) => setForm({ ...form, title: event.target.value })} />
+            <input
+              id="book-title"
+              name="bookTitle"
+              value={form.title}
+              onChange={(event) => setForm({ ...form, title: event.target.value })}
+            />
           </label>
           <label>
             Auteur
-            <input value={form.author} onChange={(event) => setForm({ ...form, author: event.target.value })} />
+            <input
+              id="book-author"
+              name="bookAuthor"
+              value={form.author}
+              onChange={(event) => setForm({ ...form, author: event.target.value })}
+            />
           </label>
         </div>
       </Modal>

@@ -22,11 +22,11 @@ export default function Library() {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
 
-  async function loadBooks() {
+  async function loadBooks(searchTerm = deferredSearch) {
     setLoading(true);
     setError("");
     try {
-      setBooks(await getBooks());
+      setBooks(await getBooks(searchTerm));
     } catch (err) {
       setError(getErrorMessage(err, "Impossible de charger les livres."));
     } finally {
@@ -35,8 +35,8 @@ export default function Library() {
   }
 
   useEffect(() => {
-    loadBooks();
-  }, []);
+    loadBooks(deferredSearch);
+  }, [deferredSearch]);
 
   async function confirmBorrow() {
     if (!selectedBook) return;
@@ -48,7 +48,7 @@ export default function Library() {
       const response = await borrowBook(selectedBook.bookId);
       setSuccess(response.message || "Livre emprunte avec succes.");
       setSelectedBook(null);
-      await loadBooks();
+      await loadBooks(deferredSearch);
     } catch (err) {
       setError(getErrorMessage(err, "Impossible d'emprunter ce livre."));
     } finally {
@@ -56,14 +56,9 @@ export default function Library() {
     }
   }
 
-  const normalizedSearch = deferredSearch.trim().toLowerCase();
   const filteredBooks = books.filter((book) => {
-    const matchesSearch =
-      !normalizedSearch ||
-      book.title?.toLowerCase().includes(normalizedSearch) ||
-      book.author?.toLowerCase().includes(normalizedSearch);
     const matchesStatus = status === "ALL" || book.status === status;
-    return matchesSearch && matchesStatus;
+    return matchesStatus;
   });
 
   const columns = [
@@ -102,13 +97,21 @@ export default function Library() {
 
       <div className="toolbar">
         <input
+          id="book-search"
+          name="bookSearch"
           type="search"
           value={search}
           onChange={(event) => setSearch(event.target.value)}
           placeholder="Rechercher par titre ou auteur"
           aria-label="Rechercher un livre"
         />
-        <select value={status} onChange={(event) => setStatus(event.target.value)} aria-label="Filtrer par statut">
+        <select
+          id="book-status-filter"
+          name="bookStatusFilter"
+          value={status}
+          onChange={(event) => setStatus(event.target.value)}
+          aria-label="Filtrer par statut"
+        >
           <option value="ALL">Tous les statuts</option>
           <option value="AVAILABLE">Disponible</option>
           <option value="BORROWED">Emprunte</option>

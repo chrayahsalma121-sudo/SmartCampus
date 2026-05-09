@@ -60,6 +60,7 @@ export const ADMIN_NAV = [
   { label: "Demandes", to: "/admin/requests" },
   { label: "Salles", to: "/admin/rooms" },
   { label: "Reservations", to: "/admin/reservations" },
+  { label: "Utilisateurs", to: "/admin/users" },
 ];
 
 export const LIBRARIAN_NAV = [

@@ -12,6 +12,7 @@ import ManageBooks from "../pages/ManageBooks.jsx";
 import ManageLoans from "../pages/ManageLoans.jsx";
 import ManageRequests from "../pages/ManageRequests.jsx";
 import ManageRooms from "../pages/ManageRooms.jsx";
+import ManageUsers from "../pages/ManageUsers.jsx";
 import MyLoans from "../pages/MyLoans.jsx";
 import MyRequests from "../pages/MyRequests.jsx";
 import MyReservations from "../pages/MyReservations.jsx";
@@ -69,6 +70,7 @@ export default function AppRoutes() {
         <Route path="/admin/requests" element={<ManageRequests />} />
         <Route path="/admin/rooms" element={<ManageRooms />} />
         <Route path="/admin/reservations" element={<AdminReservations />} />
+        <Route path="/admin/users" element={<ManageUsers />} />
       </Route>
 
       <Route

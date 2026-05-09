@@ -40,11 +40,15 @@ public class LibraryService {
     // Allowed: STUDENT, LIBRARIAN, ADMIN
     // =========================================================================
     public List<Book> listBooks(AuthenticatedUser authUser) throws Exception {
+        return listBooks(authUser, null);
+    }
+
+    public List<Book> listBooks(AuthenticatedUser authUser, String search) throws Exception {
         // All authenticated roles may list books
         if (authUser == null) {
             throw new Exception("Authentication required.");
         }
-        return bookRepo.findAll();
+        return bookRepo.findAll(search);
     }
 
     // =========================================================================

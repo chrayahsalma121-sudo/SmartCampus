@@ -114,7 +114,8 @@ public class LibraryController implements HttpHandler {
                 return;
             }
 
-            List<Book> books = libraryService.listBooks(authUser);
+            String search = getSearchQuery(exchange);
+            List<Book> books = libraryService.listBooks(authUser, search);
 
             StringBuilder sb = new StringBuilder("[");
             for (int i = 0; i < books.size(); i++) {
@@ -399,5 +400,21 @@ public class LibraryController implements HttpHandler {
 
     private String escape(String s) {
         return s == null ? "" : s.replace("\\", "\\\\").replace("\"", "\\\"");
+    }
+
+    private String getSearchQuery(HttpExchange exchange) {
+        String query = exchange.getRequestURI().getQuery();
+        if (query == null || query.isBlank()) return null;
+
+        for (String part : query.split("&")) {
+            int idx = part.indexOf('=');
+            if (idx <= 0) continue;
+            String key = java.net.URLDecoder.decode(part.substring(0, idx), java.nio.charset.StandardCharsets.UTF_8);
+            if ("search".equals(key)) {
+                return java.net.URLDecoder.decode(part.substring(idx + 1), java.nio.charset.StandardCharsets.UTF_8);
+            }
+        }
+
+        return null;
     }
 }
